@@ -1,0 +1,34 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# Package Files #
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini

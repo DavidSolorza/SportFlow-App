@@ -1,0 +1,900 @@
+{
+	"info": {
+		"_postman_id": "a9876543-1234-4567-890a-bcdef1234567",
+		"name": "SportFlow - Módulo de Seguridad (API v1)",
+		"description": "Colección completa para pruebas de caja negra y validación de endpoints del Módulo de Seguridad y Control de Acceso (HU-SE-01 a HU-SE-10) de SportFlow.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Autenticación & Control de Acceso (HU-SE-07, 08, 09, 10)",
+			"item": [
+				{
+					"name": "1.1 Login con Credenciales (SuperAdmin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.tokenAcceso) {",
+									"    pm.environment.set(\"jwt_token\", jsonData.tokenAcceso);",
+									"}",
+									"if (jsonData.usuario && jsonData.usuario.id) {",
+									"    pm.environment.set(\"admin_user_id\", jsonData.usuario.id);",
+									"}",
+									"if (jsonData.desafioToken) {",
+									"    pm.environment.set(\"desafio_token\", jsonData.desafioToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Inicia sesión con credenciales tradicionales. Guarda automáticamente el token JWT en el entorno."
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 Registro de Nuevo Usuario (HU-SE-07)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"var uid = jsonData.userId || jsonData.id;",
+									"if (uid) {",
+									"    pm.environment.set(\"nuevo_usuario_id\", uid);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tipoDocumento\": \"CC\",\n  \"numeroDocumento\": \"{{$timestamp}}\",\n  \"nombres\": \"Atleta\",\n  \"apellidos\": \"Pruebas\",\n  \"telefono\": \"+573001234567\",\n  \"nombreUsuario\": \"user_{{$timestamp}}\",\n  \"email\": \"usuario_{{$timestamp}}@sportflow.com\",\n  \"password\": \"PasswordSegura123!#\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Autoregistro público de deportista o usuario con credenciales encriptadas."
+					},
+					"response": []
+				},
+				{
+					"name": "1.3 Rechazo por Email Duplicado (HU-SE-07)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 409 Conflict\", function () {",
+									"    pm.response.to.have.status(409);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tipoDocumento\": \"CC\",\n  \"numeroDocumento\": \"1098765432\",\n  \"nombres\": \"Carlos\",\n  \"apellidos\": \"Pérez\",\n  \"telefono\": \"+573001234567\",\n  \"nombreUsuario\": \"admin_duplicado\",\n  \"email\": \"admin@sportflow.com\",\n  \"password\": \"PasswordSegura123!#\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Intento de registro con el correo del SuperAdmin para validar la regla de unicidad."
+					},
+					"response": []
+				},
+				{
+					"name": "1.4 Login Fallido - Credenciales Inválidas (HU-SE-08)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@sportflow.com\",\n  \"password\": \"ClaveIncorrecta999!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Valida que el sistema rechace el acceso ante contraseña errónea."
+					},
+					"response": []
+				},
+				{
+					"name": "1.5 Habilitar / Deshabilitar 2FA (HU-SE-10)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users/{{admin_user_id}}/2fa?habilitar=false",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"{{admin_user_id}}",
+								"2fa"
+							],
+							"query": [
+								{
+									"key": "habilitar",
+									"value": "false"
+								}
+							]
+						},
+						"description": "Activa o desactiva la exigencia de segundo factor para la cuenta del usuario."
+					},
+					"response": []
+				},
+				{
+					"name": "1.6 Verificar Desafío 2FA (HU-SE-10)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Respuesta recibida esperada\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 422]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"desafioToken\": \"{{desafio_token}}\",\n  \"codigo\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/2fa/verify",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"2fa",
+								"verify"
+							]
+						},
+						"description": "Envía el código OTP para desbloquear la sesión temporal de dos factores."
+					},
+					"response": []
+				},
+				{
+					"name": "1.7 Login OAuth2 Nativo - GitHub (HU-SE-08)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Respuesta recibida del proveedor nativo\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tokenProveedor\": \"dummy-test-github-code-12345\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/oauth/github",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"oauth",
+								"github"
+							]
+						},
+						"description": "Prueba de consumo directo del endpoint OAuth2 nativo de GitHub."
+					},
+					"response": []
+				},
+				{
+					"name": "1.8 Login OAuth2 Nativo - Google (HU-SE-08)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Respuesta recibida del proveedor nativo\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tokenProveedor\": \"dummy-test-google-token-12345\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/oauth/google",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"oauth",
+								"google"
+							]
+						},
+						"description": "Prueba de consumo directo del endpoint OAuth2 nativo de Google."
+					},
+					"response": []
+				},
+				{
+					"name": "1.9 Solicitar Recuperación de Contraseña (HU-SE-09)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@sportflow.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/password-reset/request",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"password-reset",
+								"request"
+							]
+						},
+						"description": "Emite solicitud temporal con token de recuperación de clave."
+					},
+					"response": []
+				},
+				{
+					"name": "1.10 Confirmar Contraseña Inválida (HU-SE-09)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Respuesta esperada ante token inválido\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"token-falso-inexistente-123\",\n  \"nuevaPassword\": \"NuevaClaveSegura2026!#\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/password-reset/confirm",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"password-reset",
+								"confirm"
+							]
+						},
+						"description": "Valida que el sistema rechace solicitudes de restablecimiento con tokens expirados o falsos."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Gestión de Usuarios y Perfiles (HU-SE-01, 02)",
+			"item": [
+				{
+					"name": "2.1 Listar Usuarios Paginados (HU-SE-01)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Contiene elementos paginados\", function () {",
+									"    pm.expect(jsonData.totalElementos).to.be.at.least(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users?page=0&size=10&status=ACTIVE",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": "ACTIVE"
+								}
+							]
+						},
+						"description": "Consulta el listado general de usuarios activos con paginación."
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Detalle de Usuario por ID (HU-SE-01)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Identificador coincide\", function () {",
+									"    pm.expect(jsonData.id).to.eql(pm.environment.get(\"admin_user_id\"));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users/{{admin_user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"{{admin_user_id}}"
+							]
+						},
+						"description": "Obtiene el detalle completo de un usuario por su identificador UUID."
+					},
+					"response": []
+				},
+				{
+					"name": "2.3 Actualizar Perfil de Usuario (HU-SE-02)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"telefono\": \"+573119876543\",\n  \"fotoUrl\": \"https://sportflow.com/avatars/admin.png\",\n  \"biografia\": \"Administrador Principal del Sistema\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/{{admin_user_id}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"{{admin_user_id}}",
+								"profile"
+							]
+						},
+						"description": "Actualiza los datos complementarios del perfil del usuario."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Gestión de Roles y Permisos RBAC (HU-SE-03, 04, 05, 06)",
+			"item": [
+				{
+					"name": "3.1 Listar Roles del Sistema (HU-SE-03)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Debe incluir al menos un rol\", function () {",
+									"    pm.expect(jsonData.length).to.be.above(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"roles"
+							]
+						},
+						"description": "Consulta el catálogo de roles con sus permisos y conteo de usuarios."
+					},
+					"response": []
+				},
+				{
+					"name": "3.2 Crear Nuevo Rol (HU-SE-03)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.id) {",
+									"    pm.environment.set(\"nuevo_rol_id\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"ROL_{{$timestamp}}\",\n  \"descripcion\": \"Rol dinámico de prueba automatizada\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"roles"
+							]
+						},
+						"description": "Registra un nuevo rol de negocio en la plataforma."
+					},
+					"response": []
+				},
+				{
+					"name": "3.3 Listar Permisos del Sistema (HU-SE-05)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Catálogo de permisos disponible\", function () {",
+									"    pm.expect(jsonData.length).to.be.above(0);",
+									"});",
+									"if (jsonData.length > 0 && jsonData[0].id) {",
+									"    pm.environment.set(\"permiso_id\", jsonData[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"permissions"
+							]
+						},
+						"description": "Lista el catálogo atómico de permisos del sistema."
+					},
+					"response": []
+				},
+				{
+					"name": "3.4 Asignar Permisos a Rol (HU-SE-06)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permisoIds\": [\n    \"{{permiso_id}}\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/roles/{{nuevo_rol_id}}/permissions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"roles",
+								"{{nuevo_rol_id}}",
+								"permissions"
+							]
+						},
+						"description": "Asocia permisos específicos al rol recién creado."
+					},
+					"response": []
+				},
+				{
+					"name": "3.5 Asignar Rol a Usuario (HU-SE-04)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"rolIds\": [\n    \"{{nuevo_rol_id}}\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/{{nuevo_usuario_id}}/roles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"{{nuevo_usuario_id}}",
+								"roles"
+							]
+						},
+						"description": "Asigna un rol de negocio al usuario creado previamente."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Revocación de Sesión & Cierre (HU-SE-08)",
+			"item": [
+				{
+					"name": "4.1 Cierre de Sesión / Logout (HU-SE-08)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Revoca la sesión activa del usuario y marca el token como revocado."
+					},
+					"response": []
+				},
+				{
+					"name": "4.2 Validar Rechazo de Token Revocado (HU-SE-08)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Comprueba que la petición es inmediatamente rechazada tras el logout."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

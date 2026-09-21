@@ -1,0 +1,59 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: sportflow-backend
+  profiles:
+    active: dev
+
+  datasource:
+    url: jdbc:h2:mem:sportflowdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+    driverClassName: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+    open-in-view: false
+
+sportflow:
+  security:
+    jwt:
+      secret: "sportflow-super-secure-secret-key-that-must-be-at-least-256-bits-long-sportflow-2026"
+      expiration-seconds: 86400
+      issuer: "sportflow-auth-service"
+    oauth:
+      google:
+        userinfo-url: "https://www.googleapis.com/oauth2/v3/userinfo"
+      github:
+        client-id: "${GITHUB_CLIENT_ID:Ov23lisRZCCGHj7BNSVt}"
+        client-secret: "${GITHUB_CLIENT_SECRET:30b8d8aa00738962df4f80d218510e7c022b9ddf}"
+        token-url: "https://github.com/login/oauth/access_token"
+        userinfo-url: "https://api.github.com/user"
+        emails-url: "https://api.github.com/user/emails"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/sportflow}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
