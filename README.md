@@ -20,26 +20,33 @@ Toda la documentación consolidada para la sustentación y entrega de este hito 
 
 ## 🌿 Estrategia de Ramas en el Repositorio (Git Branching Model)
 
-El repositorio está estructurado bajo un modelo estricto de bifurcación y gobernanza de código compuesto por dos ramas principales:
+El repositorio está estructurado bajo un modelo riguroso de gobernanza de código compuesto por ramas principales y ramas específicas por hito académico:
 
 | Rama | Tipo | Propósito y Reglas de Gobernanza |
 | :--- | :---: | :--- |
-| **`main`** | **Producción / Release** | Rama inmutable y estable que contiene las **versiones oficiales de entrega** (como la Entrega 1 - Módulo de Seguridad). Todo código en `main` está probado, auditado, documentado y listo para evaluación o despliegue productivo. No admite commits directos desordenados. |
-| **`dev`** | **Desarrollo / Integración** | Rama activa de desarrollo continuo (Integration Branch). En `dev` convergen las nuevas implementaciones de negocio, vertical slices (torneos, partidos, etc.) y ajustes de ingeniería antes de ser congeladas y promovidas hacia `main`. |
+| **`main`** | **Producción / Release** | Rama inmutable y estable que contiene las **versiones oficiales consolidadas**. Todo código en `main` está probado, auditado y listo para despliegue productivo. |
+| **`dev`** | **Desarrollo / Integración** | Rama activa de desarrollo continuo (Integration Branch). En `dev` convergen todas las características nuevas antes de ser promovidas. |
+| **`e01`** | **Primera Entrega** | Rama fija y certificada de la **Entrega 1: Módulo de Seguridad y Control de Acceso (HU-SE-01 a HU-SE-10)**. Preserva el estado exacto evaluable del primer hito académico. |
+| **`e02`** | **Segunda Entrega** | Rama activa de trabajo para la **Entrega 2 (Próximos módulos deportivos)**. Es el espacio donde se construirán las siguientes funcionalidades a partir de la base de `e01`. |
 
 ### Flujo de Trabajo (Gitflow Simplificado)
 ```mermaid
 gitGraph
-    commit id: "Init v1.0.0"
+    commit id: "Init Base"
     branch dev
     checkout dev
-    commit id: "Feature: IAM Core"
-    commit id: "Feature: 2FA & OAuth"
-    commit id: "Feature: Postman & Tests"
+    commit id: "Feature: IAM Core (HU-SE-01..06)"
+    commit id: "Feature: 2FA & OAuth Nativo"
+    commit id: "Feature: Postman & Tests 100% Green"
+    branch e01
+    checkout e01
+    commit id: "Certificación Entrega 1"
     checkout main
-    merge dev id: "Release: Entrega 1 (Security)" tag: "v1.0.0"
+    merge e01 id: "Release: Entrega 1 (v1.0.0)" tag: "v1.0.0"
     checkout dev
-    commit id: "Feature: Próximos Slices (Torneos)"
+    branch e02
+    checkout e02
+    commit id: "Inicio Entrega 2: Módulos Deportivos"
 ```
 
 ---

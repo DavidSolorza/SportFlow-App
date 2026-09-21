@@ -246,10 +246,13 @@ sequenceDiagram
 * **Decisión:** Modelar tres entidades separadas: `Persona` (datos civiles/identificación), `Usuario` (credenciales, 2FA, estado, proveedor de autenticación) y `Perfil` (foto, teléfono, preferencias), vinculadas mediante llaves foráneas estrictas con restricciones de unicidad.
 * **Consecuencias:** Máxima flexibilidad para el posterior crecimiento de los módulos deportivos (Anexos 2, 3, 4 y 5).
 
-### ADR 05: Estrategia de Ramas y Control de Versiones (Git Branching Model: main vs dev)
+### ADR 05: Estrategia de Ramas y Control de Versiones (Git Branching Model: main, dev, e01, e02)
 * **Contexto:** El ciclo de vida del software universitario y empresarial requiere separar el código en evolución activa del código certificado y auditado para entrega oficial y producción.
-* **Decisión:** Adoptar un modelo estricto de dos ramas troncales:
-  1. **`main` (Production / Release):** Rama protegida e inmutable que alberga exclusivamente versiones estables, probadas al 100% y aprobadas para evaluación formal o despliegue. Cada entrega académica (como la Entrega 1) se consolida en `main`.
-  2. **`dev` (Development / Integration):** Rama activa donde converge el desarrollo continuo, la integración de nuevos vertical slices (torneos, estadísticas, escenarios) y las pruebas de integración previas al merge a `main`.
-* **Consecuencias:** Trazabilidad absoluta de entregas, prevención de regresiones en versiones entregadas y aislamiento del trabajo en curso.
+* **Decisión:** Adoptar un modelo estructurado con las siguientes ramas:
+  1. **`main` (Production / Release):** Rama protegida e inmutable que alberga exclusivamente versiones estables, probadas al 100% y aprobadas para evaluación formal o despliegue.
+  2. **`dev` (Development / Integration):** Rama activa donde converge el desarrollo continuo y la integración de las características.
+  3. **`e01` (Primera Entrega):** Rama fija y certificada que preserva el código inalterable de la **Entrega 1: Módulo de Seguridad y Control de Acceso (HU-SE-01 a HU-SE-10)**.
+  4. **`e02` (Segunda Entrega):** Rama de trabajo dedicada a la construcción de la **Entrega 2 (Módulos Deportivos)** a partir de la línea base validada.
+* **Consecuencias:** Trazabilidad absoluta para los evaluadores universitarios, prevención de regresiones en entregas previas y aislamiento ordenado del trabajo en curso.
+
 

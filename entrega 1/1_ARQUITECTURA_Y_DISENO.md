@@ -218,13 +218,16 @@ sequenceDiagram
 * **Consecuencias:**
   - *Positivas:* Escalabilidad ilimitada en la nube, inspección rápida en frontend sin llamadas adicionales de autenticación, capacidad de revocar sesiones de forma inmediata ante sospechas de intrusión.
 
-### ADR-06: Estrategia de Ramas en Git (Modelo de Ramas: main vs dev)
+### ADR-06: Estrategia de Ramas en Git (Modelo de Ramas: main, dev, e01, e02)
 * **Estado:** Aceptado e Implementado.
-* **Contexto:** El ciclo de vida de desarrollo de software para el proyecto y las entregas académicas requiere una separación formal entre el código entregable/estable y el código en evolución activa.
-* **Decisión:** Configurar y gobernar el repositorio Git con dos ramas estructurales:
-  1. **`main` (Production / Release Branch):** Rama protegida e inmutable que aloja las entregas oficiales certificadas (como la Entrega 1 - Módulo de Seguridad). Contiene código completamente auditado, con cero fallos en pruebas y listo para evaluación y despliegue productivo.
-  2. **`dev` (Development / Integration Branch):** Rama de integración continua y desarrollo activo donde convergen las nuevas implementaciones, vertical slices en progreso (torneos, partidos, estadísticas) y ajustes técnicos antes de fusionarse a `main`.
+* **Contexto:** El ciclo de vida de desarrollo de software para el proyecto y las entregas académicas requiere una separación formal entre el código entregable/estable, las entregas específicas y el código en evolución activa.
+* **Decisión:** Configurar y gobernar el repositorio Git con cuatro ramas:
+  1. **`main` (Production / Release Branch):** Rama protegida e inmutable que aloja las entregas oficiales certificadas listas para despliegue y producción.
+  2. **`dev` (Development / Integration Branch):** Rama de integración continua y desarrollo activo donde convergen las nuevas implementaciones y vertical slices.
+  3. **`e01` (Primera Entrega):** Rama estática y certificada que preserva inalterable la **Entrega 1: Módulo de Seguridad y Control de Acceso (HU-SE-01 a HU-SE-10)** para su revisión docente.
+  4. **`e02` (Segunda Entrega):** Rama de trabajo dedicada al desarrollo de la **Entrega 2 (Módulos Deportivos)** a partir de la base de `e01`.
 * **Consecuencias:**
   - *Positivas:* Trazabilidad total para el evaluador universitario, estabilidad garantizada de las entregas oficiales y aislamiento del trabajo colaborativo.
   - *Negativas:* Requiere disciplina de merge y sincronización rigurosa entre ramas.
+
 

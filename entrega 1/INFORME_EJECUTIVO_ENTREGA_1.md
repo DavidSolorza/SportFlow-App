@@ -82,10 +82,12 @@ Se descartó la arquitectura tradicional por capas técnicas genéricas a nivel 
 Quedó completamente prohibido el uso de SDKs empaquetados de terceros (como Firebase Auth, Supabase o SDKs propietarios de Google/GitHub).
 - Toda comunicación hacia los servidores de **Google** (`https://www.googleapis.com/oauth2/v3/userinfo`) y **GitHub** (`https://api.github.com/user`, `https://github.com/login/oauth/access_token`) se construyó mediante un cliente HTTP nativo puro (`java.net.http.HttpClient`), inyectando cabeceras, serializando payloads JSON y procesando respuestas crudas paso a paso.
 
-### 2.5. Gobernanza de Control de Versiones: Ramas `main` y `dev`
-El repositorio en GitHub (`https://github.com/DavidSolorza/SportFlow-App.git`) se administra mediante una política estricta de dos ramas:
-- **`main` (Release / Producción):** Rama base protegida e inmutable que contiene el código certificado y probado al 100% de la **Entrega 1**. Es el punto de referencia oficial para la evaluación académica y el despliegue a producción.
-- **`dev` (Development / Integración):** Rama activa de desarrollo colaborativo donde se integran las nuevas características de los próximos anexos (torneos, partidos, estadísticas) antes de ser promovidas formalmente a `main`.
+### 2.5. Gobernanza de Control de Versiones: Ramas del Repositorio (`main`, `dev`, `e01`, `e02`)
+El repositorio en GitHub (`https://github.com/DavidSolorza/SportFlow-App.git`) se administra mediante una política estricta de ramas:
+- **`main` (Release / Producción):** Rama base protegida e inmutable que consolida las versiones oficiales listas para despliegue.
+- **`dev` (Development / Integración):** Rama activa de desarrollo colaborativo e integración continua.
+- **`e01` (Primera Entrega):** Rama estática y certificada que preserva inalterable el código de la **Entrega 1: Módulo de Seguridad y Control de Acceso (HU-SE-01 a HU-SE-10)** para la evaluación docente.
+- **`e02` (Segunda Entrega):** Rama de trabajo dedicada a la construcción de la **Entrega 2 (Módulos Deportivos)** sobre la base certificada de la primera entrega.
 
 ---
 
