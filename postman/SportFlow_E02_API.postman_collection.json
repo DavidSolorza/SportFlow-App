@@ -1,0 +1,967 @@
+{
+	"info": {
+		"_postman_id": "b1234567-89ab-cdef-0123-456789abcdef",
+		"name": "SportFlow - E02 API (Gestión Deportiva y Competencias)",
+		"description": "Colección completa de pruebas de API REST para la Entrega 2 de SportFlow.\nCubre las 16 Historias de Usuario de los Módulos 2 (Gestión Deportiva) y 3 (Gestión de Competencias).\nUtiliza el token JWT y variables del entorno 'SportFlow - Entorno Local'.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "0. Autenticación Previa (Obtener Token)",
+			"item": [
+				{
+					"name": "Login Administrador",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.environment.set(\"jwt_token\", jsonData.token);",
+									"    console.log(\"JWT Token guardado en entorno.\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"identificador\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "1. Módulo 2 - Gestión Deportiva",
+			"item": [
+				{
+					"name": "HU-GD-01: Crear Deporte Principal (Fútbol)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"sport_id\", jsonData.id);",
+									"pm.expect(jsonData.nombreCanonico).to.eql(\"Fútbol\");",
+									"pm.expect(jsonData.activo).to.be.true;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombreCanonico\": \"Fútbol\",\n  \"descripcion\": \"Deporte rey de asociación 11 contra 11\",\n  \"deportePadreId\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sports",
+							"host": ["{{base_url}}"],
+							"path": ["sports"]
+						}
+					}
+				},
+				{
+					"name": "HU-GD-01: Crear Subdeporte Recursivo (Fútbol Sala)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"subsport_id\", jsonData.id);",
+									"pm.expect(jsonData.deportePadreId).to.eql(pm.environment.get(\"sport_id\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombreCanonico\": \"Fútbol Sala\",\n  \"descripcion\": \"Modalidad sobre superficie dura 5 contra 5\",\n  \"deportePadreId\": \"{{sport_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sports",
+							"host": ["{{base_url}}"],
+							"path": ["sports"]
+						}
+					}
+				},
+				{
+					"name": "HU-GD-01: Obtener Jerarquía Recursiva del Deporte",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.expect(jsonData.subdeportes).to.be.an(\"array\");",
+									"pm.expect(jsonData.subdeportes.length).to.be.at.least(1);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sports/{{sport_id}}/hierarchy",
+							"host": ["{{base_url}}"],
+							"path": ["sports", "{{sport_id}}", "hierarchy"]
+						}
+					}
+				},
+				{
+					"name": "HU-GD-02: Crear Equipo 1 (Águilas Doradas)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"team1_id\", jsonData.id);",
+									"pm.expect(jsonData.nombreDistintivo).to.eql(\"Águilas Doradas FC\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombreDistintivo\": \"Águilas Doradas FC\",\n  \"ciudad\": \"Rionegro\",\n  \"categoria\": \"Primera A\",\n  \"genero\": \"MASCULINO\",\n  \"clubId\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/teams",
+							"host": ["{{base_url}}"],
+							"path": ["teams"]
+						}
+					}
+				},
+				{
+					"name": "HU-GD-02: Crear Equipo 2 (Tiburones Rojos)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"team2_id\", jsonData.id);",
+									"pm.expect(jsonData.nombreDistintivo).to.eql(\"Tiburones Rojos\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombreDistintivo\": \"Tiburones Rojos\",\n  \"ciudad\": \"Barranquilla\",\n  \"categoria\": \"Primera A\",\n  \"genero\": \"MASCULINO\",\n  \"clubId\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/teams",
+							"host": ["{{base_url}}"],
+							"path": ["teams"]
+						}
+					}
+				},
+				{
+					"name": "HU-GD-03: Asociar Fútbol a Equipo 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/teams/{{team1_id}}/sports/{{sport_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["teams", "{{team1_id}}", "sports", "{{sport_id}}"]
+						}
+					}
+				},
+				{
+					"name": "HU-GD-03: Asociar Fútbol a Equipo 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/teams/{{team2_id}}/sports/{{sport_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["teams", "{{team2_id}}", "sports", "{{sport_id}}"]
+						}
+					}
+				},
+				{
+					"name": "HU-GD-04: Registrar Jugador",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"player_id\", jsonData.id);",
+									"pm.expect(jsonData.nombres).to.eql(\"Mateo\");",
+									"pm.expect(jsonData.estado).to.eql(\"ACTIVO\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"personaId\": null,\n  \"tipoDocumento\": \"CC\",\n  \"numeroIdentificacion\": \"1098765432\",\n  \"nombres\": \"Mateo\",\n  \"apellidos\": \"Gómez\",\n  \"fechaNacimiento\": \"1998-05-15\",\n  \"posicion\": \"Mediocampista ofensivo\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/players",
+							"host": ["{{base_url}}"],
+							"path": ["players"]
+						}
+					}
+				},
+				{
+					"name": "HU-GD-05: Fichar Jugador en Equipo 1 (Contrato Inicial)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"contract_id\", jsonData.id);",
+									"pm.expect(jsonData.estado).to.eql(\"ACTIVO\");",
+									"pm.expect(jsonData.nombreEquipo).to.eql(\"Águilas Doradas FC\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"equipoId\": \"{{team1_id}}\",\n  \"fechaInicio\": \"2024-01-01\",\n  \"fechaFin\": \"2026-12-31\",\n  \"numeroCamiseta\": 10,\n  \"observaciones\": \"Fichaje estrella temporada 2024\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/players/{{player_id}}/contracts",
+							"host": ["{{base_url}}"],
+							"path": ["players", "{{player_id}}", "contracts"]
+						}
+					}
+				},
+				{
+					"name": "HU-GD-05: Traspasar Jugador a Equipo 2 (Cierre inmutable del contrato previo)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.expect(jsonData.estado).to.eql(\"ACTIVO\");",
+									"pm.expect(jsonData.nombreEquipo).to.eql(\"Tiburones Rojos\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"equipoId\": \"{{team2_id}}\",\n  \"fechaInicio\": \"2025-06-01\",\n  \"fechaFin\": \"2028-06-01\",\n  \"numeroCamiseta\": 8,\n  \"observaciones\": \"Traspaso de verano por cláusula de rescisión\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/players/{{player_id}}/contracts",
+							"host": ["{{base_url}}"],
+							"path": ["players", "{{player_id}}", "contracts"]
+						}
+					}
+				},
+				{
+					"name": "HU-GD-06: Crear Habilidad en Catálogo (Regate y Definición)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"skill_id\", jsonData.id);",
+									"pm.expect(jsonData.nombreCanonico).to.eql(\"Regate en velocidad\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombreCanonico\": \"Regate en velocidad\",\n  \"descripcion\": \"Capacidad de superar rivales con balón dominado en carrera\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/skills",
+							"host": ["{{base_url}}"],
+							"path": ["skills"]
+						}
+					}
+				},
+				{
+					"name": "HU-GD-07: Asignar Habilidad a Jugador con Evaluación",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.expect(jsonData.nivel).to.eql(\"AVANZADO\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"habilidadId\": \"{{skill_id}}\",\n  \"nivel\": \"AVANZADO\",\n  \"observacion\": \"Destacado rendimiento en el mano a mano ofensivo\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/skills/players/{{player_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["skills", "players", "{{player_id}}"]
+						}
+					}
+				},
+				{
+					"name": "HU-GD-08: Consultar Perfil Deportivo Centralizado del Jugador",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.expect(jsonData.jugador.nombreCompleto).to.eql(\"Mateo Gómez\");",
+									"pm.expect(jsonData.equipoActual.nombreEquipo).to.eql(\"Tiburones Rojos\");",
+									"pm.expect(jsonData.historialTraspasos.length).to.be.at.least(2);",
+									"pm.expect(jsonData.habilidades.length).to.be.at.least(1);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/players/{{player_id}}/sports-profile",
+							"host": ["{{base_url}}"],
+							"path": ["players", "{{player_id}}", "sports-profile"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Módulo 3 - Gestión de Competencias",
+			"item": [
+				{
+					"name": "HU-GC-01: Crear Torneo Oficial",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"tournament_id\", jsonData.id);",
+									"pm.expect(jsonData.nombre).to.eql(\"Copa Metropolitana SportFlow 2026\");",
+									"pm.expect(jsonData.cupoEquipos).to.eql(16);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Copa Metropolitana SportFlow 2026\",\n  \"descripcion\": \"Torneo oficial de fútbol categoría élite\",\n  \"deporteId\": \"{{sport_id}}\",\n  \"fechaInicio\": \"2026-10-01\",\n  \"fechaFin\": \"2026-12-15\",\n  \"fechaCierreInscripcion\": \"2026-09-28\",\n  \"cupoEquipos\": 16\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tournaments",
+							"host": ["{{base_url}}"],
+							"path": ["tournaments"]
+						}
+					}
+				},
+				{
+					"name": "HU-GC-02: Inscribir Equipo 1 al Torneo",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.expect(jsonData.estado).to.eql(\"ACEPTADA\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"equipoId\": \"{{team1_id}}\",\n  \"observaciones\": \"Inscripción y documentación médica aprobada\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tournaments/{{tournament_id}}/register",
+							"host": ["{{base_url}}"],
+							"path": ["tournaments", "{{tournament_id}}", "register"]
+						}
+					}
+				},
+				{
+					"name": "HU-GC-02: Inscribir Equipo 2 al Torneo",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.expect(jsonData.estado).to.eql(\"ACEPTADA\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"equipoId\": \"{{team2_id}}\",\n  \"observaciones\": \"Inscripción confirmada\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tournaments/{{tournament_id}}/register",
+							"host": ["{{base_url}}"],
+							"path": ["tournaments", "{{tournament_id}}", "register"]
+						}
+					}
+				},
+				{
+					"name": "HU-GC-03: Crear Fase Regular (Grupos)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"phase_id\", jsonData.id);",
+									"pm.expect(jsonData.nombre).to.eql(\"Fase de Grupos\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Fase de Grupos\",\n  \"tipo\": \"GRUPOS\",\n  \"orden\": 1,\n  \"fasePadreId\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/phases/tournament/{{tournament_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["phases", "tournament", "{{tournament_id}}"]
+						}
+					}
+				},
+				{
+					"name": "HU-GC-04: Crear Grupo A en la Fase",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"group_id\", jsonData.id);",
+									"pm.expect(jsonData.nombre).to.eql(\"Grupo A\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Grupo A\",\n  \"orden\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/phases/{{phase_id}}/groups",
+							"host": ["{{base_url}}"],
+							"path": ["phases", "{{phase_id}}", "groups"]
+						}
+					}
+				},
+				{
+					"name": "HU-GC-04: Asignar Equipo 1 al Grupo A",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/phases/{{phase_id}}/groups/{{group_id}}/teams/{{team1_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["phases", "{{phase_id}}", "groups", "{{group_id}}", "teams", "{{team1_id}}"]
+						}
+					}
+				},
+				{
+					"name": "HU-GC-04: Asignar Equipo 2 al Grupo A",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/phases/{{phase_id}}/groups/{{group_id}}/teams/{{team2_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["phases", "{{phase_id}}", "groups", "{{group_id}}", "teams", "{{team2_id}}"]
+						}
+					}
+				},
+				{
+					"name": "HU-GC-05: Crear Llave Eliminatoria (Playoff Bracket)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"bracket_id\", jsonData.id);",
+									"pm.expect(jsonData.nombre).to.eql(\"Llave Cuartos 1\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Llave Cuartos 1\",\n  \"ronda\": 1,\n  \"orden\": 1,\n  \"partidoId\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/phases/{{phase_id}}/brackets",
+							"host": ["{{base_url}}"],
+							"path": ["phases", "{{phase_id}}", "brackets"]
+						}
+					}
+				},
+				{
+					"name": "HU-GC-06: Programar Partido Oficial (Equipo 1 vs Equipo 2)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"match_id\", jsonData.id);",
+									"pm.expect(jsonData.estado).to.eql(\"PROGRAMADO\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"faseId\": \"{{phase_id}}\",\n  \"grupoId\": \"{{group_id}}\",\n  \"equipoLocalId\": \"{{team1_id}}\",\n  \"equipoVisitanteId\": \"{{team2_id}}\",\n  \"fechaHoraProgramada\": \"2026-10-05T16:00:00Z\",\n  \"escenario\": \"Estadio Alberto Grisales\",\n  \"partidoOrigen1\": null,\n  \"partidoOrigen2\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/matches",
+							"host": ["{{base_url}}"],
+							"path": ["matches"]
+						}
+					}
+				},
+				{
+					"name": "HU-GC-07: Registrar Evento de Partido (Gol minuto 35)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.expect(jsonData.tipoEvento).to.eql(\"GOL\");",
+									"pm.expect(jsonData.minuto).to.eql(35);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jugadorId\": \"{{player_id}}\",\n  \"equipoId\": \"{{team2_id}}\",\n  \"tipoEvento\": \"GOL\",\n  \"minuto\": 35,\n  \"descripcion\": \"Gol de jugada individual\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/matches/{{match_id}}/events",
+							"host": ["{{base_url}}"],
+							"path": ["matches", "{{match_id}}", "events"]
+						}
+					}
+				},
+				{
+					"name": "HU-GC-07: Registrar Resultado Oficial (2 - 1)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.expect(jsonData.golesLocal).to.eql(2);",
+									"pm.expect(jsonData.golesVisitante).to.eql(1);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"golesLocal\": 2,\n  \"golesVisitante\": 1,\n  \"confirmadoPor\": \"Comisario FIFA / FCF\",\n  \"observaciones\": \"Partido disputado sin irregularidades reglamentarias\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/matches/{{match_id}}/result",
+							"host": ["{{base_url}}"],
+							"path": ["matches", "{{match_id}}", "result"]
+						}
+					}
+				},
+				{
+					"name": "HU-GC-08: Consultar Tabla de Posiciones Recalculada",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.expect(jsonData).to.be.an(\"array\");",
+									"pm.expect(jsonData.length).to.be.at.least(2);",
+									"pm.expect(jsonData[0].posicion).to.eql(1);",
+									"pm.expect(jsonData[0].puntos).to.eql(3);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/phases/{{phase_id}}/standings?groupId={{group_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["phases", "{{phase_id}}", "standings"],
+							"query": [
+								{
+									"key": "groupId",
+									"value": "{{group_id}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "HU-GC-08: Consultar Vista Integral del Desarrollo del Torneo",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.expect(jsonData.nombre).to.eql(\"Copa Metropolitana SportFlow 2026\");",
+									"pm.expect(jsonData.fases).to.be.an(\"array\");",
+									"pm.expect(jsonData.fases[0].grupos.length).to.be.at.least(1);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tournaments/{{tournament_id}}/development",
+							"host": ["{{base_url}}"],
+							"path": ["tournaments", "{{tournament_id}}", "development"]
+						}
+					}
+				}
+			]
+		}
+	]
+}

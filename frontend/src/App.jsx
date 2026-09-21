@@ -9,6 +9,8 @@ import PasswordResetModal from './features/auth/components/PasswordResetModal';
 import UserDashboard from './features/auth/components/UserDashboard';
 import StatusAlert from './features/auth/components/StatusAlert';
 import { authApiService } from './features/auth/infrastructure/authApiService';
+import SportsManager from './features/sports/components/SportsManager';
+import CompetitionsManager from './features/competitions/components/CompetitionsManager';
 import { ShieldCheck, Flame, Trophy, Lock } from 'lucide-react';
 
 export default function App() {
@@ -16,6 +18,7 @@ export default function App() {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null); // { type, message, details }
+  const [currentModule, setCurrentModule] = useState('sports'); // 'security' | 'sports' | 'competitions'
 
   // Modals state
   const [twoFactorData, setTwoFactorData] = useState(null); // { desafioToken }
@@ -205,80 +208,104 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-slate-950">
-      <Header user={user} onLogout={handleLogout} />
+      <Header
+        user={user}
+        onLogout={handleLogout}
+        currentModule={currentModule}
+        onSelectModule={setCurrentModule}
+      />
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col items-center justify-center">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col items-center justify-start">
         {/* Global Status Banner */}
-        <div className="w-full max-w-md mb-6">
-          <StatusAlert
-            type={alert?.type}
-            message={alert?.message}
-            details={alert?.details}
-            onClose={() => setAlert(null)}
-          />
-        </div>
-
-        {user ? (
-          <UserDashboard user={user} token={token} onLogout={handleLogout} />
-        ) : (
-          <div className="w-full max-w-md bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-            {/* Top decorative gradient bar */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-sky-500"></div>
-
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mb-3 shadow-inner">
-                <Lock className="w-6 h-6" />
-              </div>
-              <h2 className="font-heading text-2xl font-extrabold text-white tracking-tight">
-                Iniciar Sesión
-              </h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Accede a la plataforma deportiva SportFlow
-              </p>
-            </div>
-
-            {/* Social Logins */}
-            <div className="mb-6">
-              <SocialButtons
-                onSelectProvider={(p) => {
-                  if (p === 'GOOGLE') {
-                    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-                    if (googleClientId) {
-                      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=token&scope=email%20profile`;
-                    } else {
-                      handleOAuthLogin('GOOGLE', 'google-sample-token-12345');
-                    }
-                  } else {
-                    const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
-                    if (githubClientId) {
-                      const redirectUri = window.location.origin;
-                      window.location.href = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&scope=read:user,user:email&redirect_uri=${encodeURIComponent(redirectUri)}`;
-                    } else {
-                      handleOAuthLogin('GITHUB', 'github-sample-token-12345');
-                    }
-                  }
-                }}
-                onOpenTester={() => setShowOAuthTester(true)}
-                loading={loading}
-              />
-
-              <div className="relative my-6 text-center">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-800"></div>
-                </div>
-                <span className="relative px-3 bg-slate-900 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                  O con correo electrónico
-                </span>
-              </div>
-            </div>
-
-            {/* Traditional Credentials Form */}
-            <LoginForm
-              onSubmit={handleLogin}
-              onOpenRegister={() => setShowRegister(true)}
-              onOpenReset={() => setShowReset(true)}
-              loading={loading}
+        {alert && (
+          <div className="w-full max-w-2xl mb-6">
+            <StatusAlert
+              type={alert.type}
+              message={alert.message}
+              details={alert.details}
+              onClose={() => setAlert(null)}
             />
+          </div>
+        )}
+
+        {/* View Routing based on currentModule */}
+        {currentModule === 'sports' && (
+          <div className="w-full animate-fadeIn">
+            <SportsManager />
+          </div>
+        )}
+
+        {currentModule === 'competitions' && (
+          <div className="w-full animate-fadeIn">
+            <CompetitionsManager />
+          </div>
+        )}
+
+        {currentModule === 'security' && (
+          <div className="w-full flex justify-center py-4">
+            {user ? (
+              <UserDashboard user={user} token={token} onLogout={handleLogout} />
+            ) : (
+              <div className="w-full max-w-md bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                {/* Top decorative gradient bar */}
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-sky-500"></div>
+
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mb-3 shadow-inner">
+                    <Lock className="w-6 h-6" />
+                  </div>
+                  <h2 className="font-heading text-2xl font-extrabold text-white tracking-tight">
+                    Iniciar Sesión
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Accede a la plataforma deportiva SportFlow
+                  </p>
+                </div>
+
+                {/* Social Logins */}
+                <div className="mb-6">
+                  <SocialButtons
+                    onSelectProvider={(p) => {
+                      if (p === 'GOOGLE') {
+                        const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+                        if (googleClientId) {
+                          window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=token&scope=email%20profile`;
+                        } else {
+                          handleOAuthLogin('GOOGLE', 'google-sample-token-12345');
+                        }
+                      } else {
+                        const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+                        if (githubClientId) {
+                          const redirectUri = window.location.origin;
+                          window.location.href = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&scope=read:user,user:email&redirect_uri=${encodeURIComponent(redirectUri)}`;
+                        } else {
+                          handleOAuthLogin('GITHUB', 'github-sample-token-12345');
+                        }
+                      }
+                    }}
+                    onOpenTester={() => setShowOAuthTester(true)}
+                    loading={loading}
+                  />
+
+                  <div className="relative my-6 text-center">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-slate-800"></div>
+                    </div>
+                    <span className="relative px-3 bg-slate-900 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      O con correo electrónico
+                    </span>
+                  </div>
+                </div>
+
+                {/* Traditional Credentials Form */}
+                <LoginForm
+                  onSubmit={handleLogin}
+                  onOpenRegister={() => setShowRegister(true)}
+                  onOpenReset={() => setShowReset(true)}
+                  loading={loading}
+                />
+              </div>
+            )}
           </div>
         )}
       </main>
